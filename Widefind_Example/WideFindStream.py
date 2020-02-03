@@ -1,5 +1,5 @@
 from threading import Thread
-import rethinkdb as r
+from rethinkdb import RethinkDB
 
 class Node( dict ):
     _keys = "version id type pos vel bat time rssi".split()
@@ -67,15 +67,19 @@ class WfStream( Thread ):
 
     def __init__( self, callback, address = "localhost" , port = 28015 , password = ""):
 
-        self.callback = callback;
+        self.r = RethinkDB()
+        self.callback = callback
         try:
             self.cnx = r.connect( host = address, port = port, user = "admin", password = password ).repl()
+            print("Connected to DB")
         except:
             self.cnx = None
+            print("Could not connect to db")
 
     def start(self):
         if self.cnx is not None:
             cursor = r.db( "wf100" ).table("current_state").changes().run( self.cnx )
+            #cursor = r.db( "wf100" ).table("current_state").run( self.cnx )
             for document in cursor:
                 val =  document['new_val']
                 n =  Node( val )
