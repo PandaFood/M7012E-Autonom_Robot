@@ -71,16 +71,24 @@ client.on_connect = on_connect
 client.on_message = on_message
 client.connect(broker_url, broker_port)
 
-msg = {
-   'host': 'WFGATEWAY-3ABFF8D01EFF', 
-   'message': 'BEACON:96E9E196C540FE15,0.2.7,0,-4700,2700,4.00,-87.3,1183981,MAN,SAT*9383', 
-   'source': '03FF5C0A2BFA3A9B', 
-   'time': '2020-02-07T11:33:12.854889928Z', 
-   'type': 'widefind_message'
-   }
+# msg = {
+#    'host': 'WFGATEWAY-3ABFF8D01EFF', 
+#    'message': 'BEACON:96E9E196C540FE15,0.2.7,0,-4700,2700,4.00,-87.3,1183981,MAN,SAT*9383', 
+#    'source': '03FF5C0A2BFA3A9B', 
+#    'time': '2020-02-07T11:33:12.854889928Z', 
+#    'type': 'widefind_message'
+#    }
 
 conn = r.connect(host=rethink_url, port=rethink_port, db="WIDEFIND" ).repl()
-#r.db("WIDEFIND").table_create("current_state").run()
+
+print 'Creating app database...'
+try:
+   r.db_create('WIDEFIND').run(connection)
+   r.db('WIDEFIND').table_create('current_state').run(connection)
+   print 'App database created.'
+except RqlRuntimeError:
+   print 'App database already exists. Continuing'
+finally:
 
 
 client.loop_start()
