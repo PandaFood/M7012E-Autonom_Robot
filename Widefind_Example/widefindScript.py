@@ -88,8 +88,6 @@ try:
    print ('App database created.')
 except RqlRuntimeError:
    print( 'App database already exists. Continuing')
-finally:
-
 
 client.loop_start()
 
