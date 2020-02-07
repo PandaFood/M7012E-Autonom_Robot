@@ -86,7 +86,7 @@ try:
    r.db_create('WIDEFIND').run(conn)
    r.db('WIDEFIND').table_create('current_state').run(conn)
    print ('App database created.')
-except RqlRuntimeError:
+except:
    print( 'App database already exists. Continuing')
 
 client.loop_start()
