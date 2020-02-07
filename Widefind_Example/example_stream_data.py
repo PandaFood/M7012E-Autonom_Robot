@@ -15,7 +15,7 @@ def print_only_spot_info( nodeobj ):
 # initialize the WfStream object with the connection details for the server and
 # a callback function to be run when new/updated data arrives, the argument to
 # the callback function is a "Node" object, containing all relevant data
-t = WfStream(print_only_spot_info, "35.180.30.36", 28016, "UnlikelySnuggleBuild")
+t = WfStream(print_only_spot_info, "127.0.0.1", 28015, "UnlikelySnuggleBuild")
 
 # start thread, callback will be run in the threads context
 t.start()

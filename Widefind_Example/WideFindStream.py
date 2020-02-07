@@ -1,5 +1,6 @@
 from threading import Thread
 from rethinkdb import RethinkDB
+import sys
 
 class Node( dict ):
     _keys = "version id type pos vel bat time rssi".split()
@@ -30,10 +31,6 @@ class Node( dict ):
         if key not in Node._keys:
             raise KeyError
         dict.__setitem__(self, key, val)
-
-    # def __getitem__(self, key):
-    #     if key not in Node._keys:
-    #         raise KeyError
     #     return self[key]
 
     def type(self):
@@ -65,25 +62,29 @@ class Node( dict ):
 
 class WfStream( Thread ):
 
-    def __init__( self, callback, address = "localhost" , port = 28015 , password = ""):
+    def __init__( self, callback, address = "localhost" , port = 28015 , password = "", db = "WIDEFIND"):
 
         self.r = RethinkDB()
         self.callback = callback
         try:
-            self.cnx = r.connect( host = address, port = port, user = "admin", password = password ).repl()
+
+            self.cnx = self.r.connect( host=address, port=port, db=db).repl()
             print("Connected to DB")
         except:
+            print(address)
+            print(port)
             self.cnx = None
-            print("Could not connect to db")
+            print("Could not connect to db", sys.exc_info())
 
     def start(self):
         if self.cnx is not None:
-            cursor = r.db( "wf100" ).table("current_state").changes().run( self.cnx )
-            #cursor = r.db( "wf100" ).table("current_state").run( self.cnx )
+            cursor = self.r.db( "WIDEFIND" ).table("current_state").changes().run( self.cnx )
+            #cursor = self.r.db( "WIDEFIND" ).table("current_state").run( self.cnx )
             for document in cursor:
-                val =  document['new_val']
-                n =  Node( val )
-                self.callback( n )
+                print(document)
+                #val =  document['new_val']
+                #n =  Node( val )
+                #self.callback( n )
         else:
             return "Not connected to server"
 

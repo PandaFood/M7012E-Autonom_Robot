@@ -57,7 +57,7 @@ def on_message(client, userdata, message):
       msg = r.table('current_state').insert(event).run(conn)
       ids.append(str(event["id"]))
    else:
-      msg = r.table('current_state').update(event).run(conn)
+      msg = r.table('current_state').replace(event).run(conn)
 
 
    #print(event)
@@ -95,4 +95,4 @@ client.loop_start()
 client.subscribe("#")
 
 while True:
-    time.sleep(2)
+    time.sleep(1)
