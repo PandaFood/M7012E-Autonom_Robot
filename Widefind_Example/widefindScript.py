@@ -81,13 +81,13 @@ client.connect(broker_url, broker_port)
 
 conn = r.connect(host=rethink_url, port=rethink_port, db="WIDEFIND" ).repl()
 
-print 'Creating app database...'
+print ('Creating app database...')
 try:
-   r.db_create('WIDEFIND').run(connection)
-   r.db('WIDEFIND').table_create('current_state').run(connection)
-   print 'App database created.'
+   r.db_create('WIDEFIND').run(conn)
+   r.db('WIDEFIND').table_create('current_state').run(conn)
+   print ('App database created.')
 except RqlRuntimeError:
-   print 'App database already exists. Continuing'
+   print( 'App database already exists. Continuing')
 finally:
 
 
