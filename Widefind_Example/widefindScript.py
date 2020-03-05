@@ -26,6 +26,19 @@ pos = {}
 
 ids = []
 
+class Event():
+   def __init__(self, id, x, y, z, time):
+      self.id = id
+      self.x = x
+      self.y = y
+      self.z = z
+      self.time = time
+   def __str__(self):
+      return "\t\t ID:" + self.id + " - " + "\t\t POS:" + self.x + ":" + self.y + ":" + self.z + "\t-\t\tstamp:" + self.time + "\n"
+   def __repr__(self):
+      return "\t\t ID:" + self.id + " - " + "\t\t POS:" + self.x + ":" + self.y + ":" + self.z + "\t-\t\tstamp:" + self.time + "\n"
+
+
 
 def on_connect(client, userdata, flags, rc):
    print("Connected With Result Code "+rc)
@@ -52,15 +65,39 @@ def on_message(client, userdata, message):
    event["pos"] = pos
 
    msg = ""
+   new = Event(event["id"], pos["X"], pos["Y"], pos["Z"], event["time"])
 
-   if(str(event["id"]) not in ids):
-      msg = r.table('current_state').insert(event).run(conn)
-      ids.append(str(event["id"]))
-   else:
-      msg = r.table('current_state').replace(event).run(conn)
+   #print(new)
 
 
-   #print(event)
+   if(len(ids) == 0):
+      ids.append(new) 
+      print("no prior item in list. adding first")
+
+   print(time.asctime( time.localtime(time.time()) )) 
+   print(ids)
+
+   for i, e in enumerate(ids):
+      if(e.id == new.id):
+
+         ids[i] = new
+         return
+
+   print(e.id + " is not same as " + new.id)
+   ids.append(new)
+
+   # if(event.x not in ids):
+   #    ids.append(event["pos"])
+   #    print(event)
+
+   # if(str(event["id"]) not in ids):
+   #    msg = r.table('current_state').insert(event).run(conn)
+   #    ids.append(str(event["id"]))
+   # else:
+   #    msg = r.table('current_state').replace(event).run(conn)
+
+
+#   print(event)
    #print( msg )
 
 
