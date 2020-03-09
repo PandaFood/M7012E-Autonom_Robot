@@ -106,6 +106,7 @@ def on_message(client, userdata, message):
    matrix = np.array([bprim, cprim, xprim])
    side = np.linalg.det(matrix)
 
+   # Calculate the angle between v1 and vp using the dot product
    theta = acos( (v1[0] * vp[0] + v1[1] * vp[1] + v1[2] * vp[2]) / ( sqrt(v1[0]**2 + v1[1]**2 + v1[2]**2) * sqrt(vp[0]**2 + vp[1]**2 + vp[2]**2) ) )
    thetaDeg = theta * 180/pi
 
