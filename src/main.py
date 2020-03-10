@@ -1,5 +1,8 @@
-from Camera.Camera import Camera
+import sys
+
+from camera.camera import Camera
 
 c = Camera()
 
-c.move(300)
+res = c.move(int(sys.argv[1]))
+print(res)
