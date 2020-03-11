@@ -1,1 +1,6 @@
 __pycache__
+bin
+lib
+settings.json
+*.pyc
+*.cfg
