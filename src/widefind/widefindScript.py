@@ -22,9 +22,11 @@ class Event():
       def __repr__(self):
          return "\t\t ID:" + self.id + " - " + "\t\t POS:" + self.x + ":" + self.y + ":" + self.z + "\t-\t\tstamp:" + self.time + "\n"
 
-class WidefindTracker():
+class WidefindTracker( threading.Thread ):
 
    def __init__(self):
+      threading.Thread.__init__(self)
+
       #MQTT IP for widefind
       self.broker_url = "130.240.114.24"
       self.broker_port = 1883
@@ -51,20 +53,19 @@ class WidefindTracker():
       self.client.on_connect = self.on_connect
       self.client.on_message = self.on_message
 
-   def start(self):
+   def run(self):
       self.client.connect(self.broker_url, self.broker_port)
       self.client.loop_start()
 
       # '#' means subcribe to all topics
       self.client.subscribe("#")
 
-      while True:
-         if self.following:
-            if abs(self.c.currentRotation() - self.rotation) > 5:
-               if self.rotation < 20 or self.rotation > 340:
-                  self.c.rotate(0)
-               else:
-                  self.c.rotate(self.rotation)
+      while self.following:
+         if abs(self.c.currentRotation() - self.rotation) > 5:
+            if self.rotation < 20 or self.rotation > 340:
+               self.c.rotate(0)
+            else:
+               self.c.rotate(self.rotation)
 
          time.sleep(1)
 
@@ -86,7 +87,7 @@ class WidefindTracker():
       self.following = True
 
    def stop(self):
-      self.follow = False
+      self.following = False
 
    def on_connect(self, client, userdata, flags, rc):
       print("Connected With Result Code "+rc)
@@ -186,7 +187,3 @@ class WidefindTracker():
 
       print(e.id + " is not same as " + new.id)
       self.ids.append(new)
-
-wf = WidefindTracker()
-wf.start()
-wf.follow()
