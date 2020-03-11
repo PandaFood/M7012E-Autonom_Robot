@@ -1,21 +1,17 @@
 import paho.mqtt.client as mqtt
-#from rethinkdb import RethinkDB
 import datetime
 import time
-from datetime import datetime,timezone, timedelta, date
+from datetime import datetime, timezone, timedelta, date
 import sys
 import json
 import numpy as np
 from math import acos, sqrt, pi
+sys.path.insert(1, "..")
+from camera.Camera import Camera
 
 #MQTT IP for widefind
 broker_url = "130.240.114.24"
 broker_port = 1883
-
-#RETHINKDB
-#r = RethinkDB()
-#rethink_url = "localhost"
-#rethink_port = 28015
 
 def refreshToken(rc):
 	rc.login()
@@ -30,8 +26,13 @@ ids = []
 
 person = [0, 0, 0]
 p1 = [0, 0, 0]
+#cameraRoof = [3141, -3812, 1220]
 camera = [3261, -3800, 740]
-cameraFloor = [3568, -4051, 90]
+cameraFloor = [3635, -4074, 418]
+
+# Object controlling the camera
+c = Camera()
+currentRotation = 0
 
 def updatePerson(val):
    global person
@@ -40,6 +41,14 @@ def updatePerson(val):
 def updateP1(val):
    global p1
    p1 = val
+
+#def updateCameraFloor(val):
+#   global cameraFloor
+#   cameraFloor = val
+
+def updateRotation(val):
+   global currentRotation
+   currentRotation = val
 
 class Event():
    def __init__(self, id, x, y, z, time):
@@ -80,19 +89,29 @@ def on_message(client, userdata, message):
    event["pos"] = pos
 
    # Insert the widefind id of the sensor the person is wearing here
-   if event["id"] == "8F44CDEF5DC36678":
+   if event["id"] == "F1587D88122BE247":
       updatePerson([int(pos["X"]), int(pos["Y"]), int(pos["Z"])])
 
    # Insert the widefind id of the sensor placed in the cameras 0 degree direction
-   if event["id"] == "F1587D88122BE247":
+   if event["id"] == "8F44CDEF5DC36678":
       updateP1([int(pos["X"]), int(pos["Y"]), int(pos["Z"])])
+
+   # Insert the widefind id of the sensor on the floor right beneath the camera
+   #if event["id"] == "AD9C473EACA8830B":
+   #   updateCameraFloor([int(pos["X"]), int(pos["Y"]), int(pos["Z"])])
 
    # A vector in the direction of the camera when the camera is rotated 0 degrees
    # p1 is a widefind sensor placed somewhere in that direction
    v1 = [p1[0] - camera[0], p1[1] - camera[1], p1[2] - camera[2]]
 
-   # A vector from the camera to a person wearing a widefind sensor
+   # A vector from the camera in the roof, to the floor right underneath the camera.
+   #v2 = [cameraFloor[0] - cameraRoof[0], cameraFloor[1] - cameraRoof[1], cameraFloor[2] - cameraRoof[2]]
+
+   # A vector from the camera (at the same height as a person would wear it, i.e not at roof height nor floor height) to a person wearing a widefind sensor
    vp = [person[0] - camera[0], person[1] - camera[1], person[2] - camera[2]]
+
+   # A vector from the camera (at roof height) to a person wearing a widefind sensor
+   #vcp = [person[0] - cameraRoof[0], person[1] - cameraRoof[1], person[2] - cameraRoof[2]]
 
    # Calculate which side of the room the person is at
    # side < 0 => bedroom side of the room
@@ -107,16 +126,18 @@ def on_message(client, userdata, message):
    side = np.linalg.det(matrix)
 
    # Calculate the angle between v1 and vp using the dot product
-   theta = acos( (v1[0] * vp[0] + v1[1] * vp[1] + v1[2] * vp[2]) / ( sqrt(v1[0]**2 + v1[1]**2 + v1[2]**2) * sqrt(vp[0]**2 + vp[1]**2 + vp[2]**2) ) )
-   thetaDeg = theta * 180/pi
+   rotation = acos((v1[0] * vp[0] + v1[1] * vp[1] + v1[2] * vp[2]) / (sqrt(v1[0]**2 + v1[1]**2 + v1[2]**2) * sqrt(vp[0]**2 + vp[1]**2 + vp[2]**2)))
+   rotationDeg = rotation * 180/pi
+
+   # Calculate the angle between v2 and vcp using the dot product
+   #tilt = acos((v2[0] * vcp[0] + v2[1] * vcp[1] + v2[2] * vcp[2]) / (sqrt(v2[0]**2 + v2[1]**2 + v2[2]**2) * sqrt(vcp[0]**2 + vcp[1]**2 + vcp[2]**2)))
+   #tiltDeg = tilt * 180/pi
 
    if(side < 0):
-      thetaDeg = 360 - thetaDeg
+      rotationDeg = 360 - rotationDeg
 
    msg = ""
    new = Event(event["id"], pos["X"], pos["Y"], pos["Z"], event["time"])
-
-   #print(new)
 
    if(len(ids) == 0):
       ids.append(new) 
@@ -124,7 +145,14 @@ def on_message(client, userdata, message):
 
    print(time.asctime( time.localtime(time.time()) )) 
    print(ids)
-   print(thetaDeg)
+   print("Rotation: " + str(rotationDeg))
+   #print("Tilt: " + str(tiltDeg))
+
+   # Dont rotate if the difference of the new and old rotation is less than 10, to prevent shakiness
+   if abs(currentRotation - rotationDeg) > 10:
+      c.rotate(rotationDeg)
+      updateRotation(rotationDeg)
+
 
    for i, e in enumerate(ids):
       if(e.id == new.id):
@@ -135,46 +163,10 @@ def on_message(client, userdata, message):
    print(e.id + " is not same as " + new.id)
    ids.append(new)
 
-   # if(event.x not in ids):
-   #    ids.append(event["pos"])
-   #    print(event)
-
-   # if(str(event["id"]) not in ids):
-   #    msg = r.table('current_state').insert(event).run(conn)
-   #    ids.append(str(event["id"]))
-   # else:
-   #    msg = r.table('current_state').replace(event).run(conn)
-
-
-#   print(event)
-   #print( msg )
-
-
-
-
 client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = on_message
 client.connect(broker_url, broker_port)
-
-# msg = {
-#    'host': 'WFGATEWAY-3ABFF8D01EFF', 
-#    'message': 'BEACON:96E9E196C540FE15,0.2.7,0,-4700,2700,4.00,-87.3,1183981,MAN,SAT*9383', 
-#    'source': '03FF5C0A2BFA3A9B', 
-#    'time': '2020-02-07T11:33:12.854889928Z', 
-#    'type': 'widefind_message'
-#    }
-
-#conn = r.connect(host=rethink_url, port=rethink_port, db="WIDEFIND" ).repl()
-
-#rint ('Creating app database...')
-#try:
-#   r.db_create('WIDEFIND').run(conn)
-#   r.db('WIDEFIND').table_create('current_state').run(conn)
-#   print ('App database created.')
-#except:
-#   print( 'App database already exists. Continuing')
-
 client.loop_start()
 
 # '#' means subcribe to all topics
