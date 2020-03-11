@@ -7,7 +7,7 @@ import json
 import numpy as np
 from math import acos, sqrt, pi
 sys.path.insert(1, "..")
-from camera.Camera import Camera
+from camera.camera import Camera
 
 #MQTT IP for widefind
 broker_url = "130.240.114.24"
