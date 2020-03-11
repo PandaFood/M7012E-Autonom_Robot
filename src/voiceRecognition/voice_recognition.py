@@ -1,5 +1,9 @@
 #Requires the modules SpeechRecognition and pyaudio
 import speech_recognition as sr
+import sys
+sys.path.insert(1, "..")
+from camera.camera import Camera
+from widefind.widefind import Widefind
 
 def recognizeSpeech(recognizer, microphone):
     #Check that recognizer and microphone arguments are appropriate type
@@ -50,13 +54,41 @@ def recordAudio(recognizer, microphone):
 
 #Handle transcriptions here
 def handleTranscription(transcription):
-    if (transcription == "camera follow me"):
-        print("Command 'camera follow me' recognized!")
-        #Do something
+    
+    if ("follow" in transcription):
+        print("Follow command recognized!")
+        sensor.follow()
+
+    if ("stop" in transcription):
+        print("Stop command recognized!")
+        sensor.stop()
+
+    if (transcription == "camera rotate"):
+        print("Command 'camera rotate' recognized!")
+        c.rotate(50)
+
+    #Two examples of easily recognizing transcript commands
+
+    #This will trigger if the transcription contains the letters "example" in order, anywhere in the string
+    #This is useful as if your speech is interpreted as "examples" it will trigger "example"
+    #Might lead to unintended commands as some words can contain other words
+    if ("example" in transcription):
+        print("example command recognized! (partial match)")
+        #Call function
+
+    #This will only trigger if the transcription is exactly "example"
+    #Might lead to problems if a string contains more words than just the command word(s) and if "example" is interpreted as "examples"
+    if (transcription == "example"):
+        print("example command recognized! (exact match)")
+        #Call function
+    
+
 
 if __name__ == "__main__":
     # create recognizer and mic instances
     recognizer = sr.Recognizer()
     microphone = sr.Microphone()
+    c = Camera()
+    sensor = WideFind()
 
     recordAudio(recognizer, microphone)
