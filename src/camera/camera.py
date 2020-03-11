@@ -35,11 +35,8 @@ class Camera:
         degrees=hex(degrees)
         return str(degrees)[2:].upper()
 
-    def __createMovementURL(self, horizontalDegrees, verticalDegrees):
-        return self.BASEURL + "APC" + str(horizontalDegrees) + str(verticalDegrees) + "&res=1"
-
-    def __sendCommand(self, command):
-        URL= command
+    def rotate(self, degrees):
+        URL="http://130.240.105.145/cgi-bin/aw_ptz?cmd=%23APC" + self.__convertDegrees(degrees, self.Vdg) + self.D45 + "&res=1"
         r = requests.get(url = URL) 
         return r
 
