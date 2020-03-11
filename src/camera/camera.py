@@ -26,6 +26,8 @@ class Camera:
         #Range on the y dimension
         self.D45="6AAA"
         self.DPrueba="7000"
+
+        self.rotation = 0
         
     
     def __convertDegrees(self, degrees, Cdg):
@@ -38,7 +40,14 @@ class Camera:
     def rotate(self, degrees):
         URL="http://130.240.105.145/cgi-bin/aw_ptz?cmd=%23APC" + self.__convertDegrees(degrees, self.Vdg) + self.D45 + "&res=1"
         r = requests.get(url = URL) 
+
+        if r.status_code == 200:
+            self.rotation = degrees
+        
         return r
+
+    def currentRotation(self):
+        return self.rotation
 
     def move(self, degrees):
         degrees = self.__convertDegrees(degrees, self.Hdg)
