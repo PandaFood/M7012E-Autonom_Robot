@@ -3,7 +3,7 @@ import speech_recognition as sr
 import sys
 sys.path.insert(1, "..")
 from camera.camera import Camera
-from widefind.widefind import Widefind
+from widefind.widefindScript import WidefindTracker
 
 def recognizeSpeech(recognizer, microphone):
     #Check that recognizer and microphone arguments are appropriate type
@@ -63,10 +63,6 @@ def handleTranscription(transcription):
         print("Stop command recognized!")
         sensor.stop()
 
-    if (transcription == "camera rotate"):
-        print("Command 'camera rotate' recognized!")
-        c.rotate(50)
-
     #Two examples of easily recognizing transcript commands
 
     #This will trigger if the transcription contains the letters "example" in order, anywhere in the string
@@ -89,6 +85,6 @@ if __name__ == "__main__":
     recognizer = sr.Recognizer()
     microphone = sr.Microphone()
     c = Camera()
-    sensor = WideFind()
+    sensor = WidefindTracker()
 
     recordAudio(recognizer, microphone)
