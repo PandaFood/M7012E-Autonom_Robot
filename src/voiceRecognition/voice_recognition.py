@@ -54,9 +54,16 @@ def recordAudio(recognizer, microphone):
 
 #Handle transcriptions here
 def handleTranscription(transcription):
+    if(not transcription):
+        return
     
+    if("help" in transcription):
+        print("Helping")
+        sensor.help()
+
     if ("follow" in transcription):
         print("Follow command recognized!")
+        print("Following")
         sensor.follow()
 
     if ("stop" in transcription):
@@ -86,5 +93,6 @@ if __name__ == "__main__":
     microphone = sr.Microphone()
     c = Camera()
     sensor = WidefindTracker()
+    sensor.start()
 
     recordAudio(recognizer, microphone)

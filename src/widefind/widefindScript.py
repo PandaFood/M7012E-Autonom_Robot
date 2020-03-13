@@ -37,6 +37,8 @@ class WidefindTracker( threading.Thread ):
 
       self.ids = []
 
+      self.debug = False
+
       self.person = [0, 0, 0]
       self.p1 = [0, 0, 0]
       #self.cameraRoof = [3141, -3812, 1220]
@@ -53,21 +55,22 @@ class WidefindTracker( threading.Thread ):
       self.client.on_connect = self.on_connect
       self.client.on_message = self.on_message
 
-   def run(self):
+   def run(self, debug=False):
       self.client.connect(self.broker_url, self.broker_port)
       self.client.loop_start()
+      self.debug = debug
 
       # '#' means subcribe to all topics
       self.client.subscribe("#")
 
-      while self.following:
-         if abs(self.c.currentRotation() - self.rotation) > 5:
-            if self.rotation < 20 or self.rotation > 340:
-               self.c.rotate(0)
-            else:
-               self.c.rotate(self.rotation)
+      # while self.following:
+      #    if abs(self.c.currentRotation() - self.rotation) > 5:
+      #       if self.rotation < 20 or self.rotation > 340:
+      #          self.c.rotate(0)
+      #       else:
+      #          self.c.rotate(self.rotation)
 
-         time.sleep(1)
+      #    time.sleep(1)
 
    def refreshToken(self, rc):
 	   rc.login()
@@ -88,6 +91,10 @@ class WidefindTracker( threading.Thread ):
 
    def stop(self):
       self.following = False
+
+   def help(self):
+      self.stop()
+      self.c.rotate(self.rotation)
 
    def on_connect(self, client, userdata, flags, rc):
       print("Connected With Result Code "+rc)
@@ -172,11 +179,16 @@ class WidefindTracker( threading.Thread ):
          self.ids.append(new) 
          print("no prior item in list. adding first")
 
-      print(time.asctime( time.localtime(time.time()) )) 
-      print(self.ids)
-      print("Rotation: " + str(rotationDeg))
-      print("CurrentRotation: " + str(self.c.currentRotation()))
+      if(self.debug):
+         print(time.asctime( time.localtime(time.time()) )) 
+         print(self.ids)
+         print("Rotation: " + str(rotationDeg))
+         print("CurrentRotation: " + str(self.c.currentRotation()))
+
       self.rotation = rotationDeg
+
+      if(self.following):
+         self.c.rotate(self.rotation)
       #print("Tilt: " + str(tiltDeg))
 
       for i, e in enumerate(self.ids):

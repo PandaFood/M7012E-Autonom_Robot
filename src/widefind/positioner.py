@@ -4,13 +4,11 @@ import time
 
 print("starting... ")
 
-wf = WidefindTracker('1')
+wf = WidefindTracker()
 print("initialized")
-wf.start()
+wf.run()
 print("started")
-wf.follow()
-print("following now")
-time.sleep(5)
-print("stopping")
-wf.stop()
-print("stopped")
+
+while True:
+    wf.help()
+    time.sleep(10)
