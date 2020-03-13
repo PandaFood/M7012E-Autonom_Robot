@@ -63,15 +63,6 @@ class WidefindTracker( threading.Thread ):
       # '#' means subcribe to all topics
       self.client.subscribe("#")
 
-      # while self.following:
-      #    if abs(self.c.currentRotation() - self.rotation) > 5:
-      #       if self.rotation < 20 or self.rotation > 340:
-      #          self.c.rotate(0)
-      #       else:
-      #          self.c.rotate(self.rotation)
-
-      #    time.sleep(1)
-
    def refreshToken(self, rc):
 	   rc.login()
 	   return rc.token
@@ -187,6 +178,7 @@ class WidefindTracker( threading.Thread ):
 
       self.rotation = rotationDeg
 
+      # If we're following the person, rotate the camera right away
       if(self.following):
          self.c.rotate(self.rotation)
       #print("Tilt: " + str(tiltDeg))
